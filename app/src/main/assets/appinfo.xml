@@ -4,8 +4,8 @@
   <version_code>1</version_code>
   <channel_id>oversea_debug</channel_id>
   <min_sdk>17</min_sdk>
-  <git_branch>HEAD</git_branch>
-  <git_commit_id>HEAD</git_commit_id>
+  <git_branch>master</git_branch>
+  <git_commit_id>789c3858a159c3034d944e05b67abc0703122665</git_commit_id>
   <system_app>false</system_app>
   <dependencies>
     <dependency name="appcompat-v7">
@@ -22,7 +22,7 @@
     </dependency>
     <dependency name="base">
       <package_name>com.linkin.base</package_name>
-      <version_name>1.0.87</version_name>
+      <version_name>1.0.91</version_name>
     </dependency>
     <dependency name="butterknife">
       <package_name>com.jakewharton</package_name>
