@@ -4,6 +4,9 @@ import groovy.xml.XmlUtil
 apply plugin: 'com.android.application'
 apply plugin: 'maven'
 
+def vn = '1.06.00'
+def vc = vn.replace('.', '').toInteger()
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
@@ -21,8 +24,8 @@ android {
         applicationId "linkin.com.apkinfo"
         minSdkVersion 17
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        versionCode vc
+        versionName vn
     }
 
     buildTypes {
@@ -38,11 +41,7 @@ android {
     }
 
     productFlavors {
-        domestic {
-        }
 
-        oversea {
-        }
     }
 
     lintOptions {
@@ -51,10 +50,8 @@ android {
 }
 
 /************************ 搜集项目信息 - 开始 ************************/
-// 定义该项目的名字（暂时还没有自动获取项目名字，后面会继续改进）
-String appName = "ApkInfo"
 
-/**************** 获取项目信息的一些列方法 - 开始 ****************/
+/**************** 方法定义 - 开始 ****************/
 
 // 包名
 def pkgName() {
@@ -94,25 +91,38 @@ def isSystemApp() {
 // 获取用户组
 def userId() {
     def manifestFile = file(project.projectDir.absolutePath + '/src/main/AndroidManifest.xml')
+    // 需要 import groovy.xml.Namespace
     def ns = new Namespace("http://schemas.android.com/apk/res/android", "android")
     def xml = new XmlParser().parse(manifestFile)
     return xml.attributes()[ns.sharedUserId].toString()
 }
-/**************** 获取项目信息的一些列方法 - 结束 ****************/
 
-/**************** 生成项目信息配置文件的任务 - 开始 ****************/
+// 判断是否还有变更没有提交
+def needCommit() {
+    return "git status --porcelain".execute().text.trim().size() > 0
+}
+
+def endsWith00() {
+    return versionName().endsWith('00')
+}
+
+/**************** 方法定义 - 结束 ****************/
+
+/**************** 任务定义 - 开始 ****************/
+
+// 搜集项目信息的任务
 task createAppInfo << {
 
     // 创建记录项目基本信息的文件，以供后台系统读取
     def assets = project.projectDir.absolutePath + '/src/main/assets/'
-    def apkinfo = assets + "appinfo.xml"
+    def apkInfo = assets + "appinfo.xml"
 
     def directory = new File(assets)
     if (!directory.exists()) {
         directory.mkdirs()
     }
 
-    def file = new File(apkinfo)
+    def file = new File(apkInfo)
     file.createNewFile()
 
     // 获取最基本的项目信息
@@ -125,11 +135,11 @@ task createAppInfo << {
     def isSystemApp = isSystemApp()
 
     // 记录上述的基本信息
-    def info = "<project name='${appName}'>\n" +
+    def info = "<project name='${rootProject.name}'>\n" +
             "\t<package_name>${packageName}</package_name>\n" +
             "\t<version_name>${versionName}</version_name>\n" +
             "\t<version_code>${versionCode}</version_code>\n" +
-            "\t<channel_id></channel_id>\n" +
+            "\t<channel_id>release</channel_id>\n" +
             "\t<min_sdk>${minSdk}</min_sdk>\n" +
             "\t<git_branch>${gitBranch}</git_branch>\n" +
             "\t<git_commit_id>${gitCommitId}</git_commit_id>\n" +
@@ -140,37 +150,45 @@ task createAppInfo << {
     def root = new XmlSlurper().parseText(info)
 
     // 获取依赖模块的信息
-    def channelIdNotSet = true
-    android.applicationVariants.all { variant ->
-        if (channelIdNotSet) {
-            root.channel_id = "${variant.flavorName}_${variant.buildType.name}"
-            //noinspection GroovyAssignabilityCheck
-            configurations.findAll {
-                //noinspection GroovyAssignabilityCheck
-                it.name.equals("compile") || it.name.contains("${variant.buildType.name}Compile")
-            }.each {
-                it.dependencies.all { d ->
-                    if (null != d.group && null != d.version) {
-                        root.dependencies.appendNode {
-                            //noinspection GroovyAssignabilityCheck
-                            dependency(name: d.name) {
-                                package_name d.group
-                                version_name d.version
-                            }
-                        }
-                        file.write(XmlUtil.serialize(root))
+    //noinspection GroovyAssignabilityCheck
+    configurations.findAll {
+        it.name.equals('compile') || it.name.equals('releaseCompile')
+    }.each {
+        it.dependencies.all { d ->
+            if (null != d.group && null != d.version) {
+                root.dependencies.appendNode {
+                    //noinspection GroovyAssignabilityCheck
+                    dependency(name: d.name) {
+                        package_name d.group
+                        version_name d.version
                     }
                 }
+                file.write(XmlUtil.serialize(root))
             }
         }
-        channelIdNotSet = false
+    }
+}
+
+// 针对 release 版本的条件校验任务
+task checkReleaseConditions << {
+
+    if (!endsWith00()) { // 如果版本名不符合规定，则不能生成 release 版本
+        throw new RuntimeException('Release version name should ends with "00".')
+    }
+
+    if (needCommit()) { // 如果还有改动没有通过 git 提交，则不能生成 release 版本
+        throw new RuntimeException('Please commit the changes before you build release version.')
     }
 
 }
-/**************** 生成项目信息配置文件的任务 - 结束 ****************/
+
+/**************** 任务定义 - 结束 ****************/
 
 // 在编译前，首先执行“创建信息文件”的任务
 preBuild.dependsOn createAppInfo
+
+// 如果是 release 版本，则需要检查编译条件
+assembleRelease.dependsOn checkReleaseConditions
 
 /************************ 搜集项目信息 - 结束 ************************/
 
