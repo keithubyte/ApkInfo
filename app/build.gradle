@@ -102,6 +102,7 @@ def needCommit() {
     return "git status --porcelain".execute().text.trim().size() > 0
 }
 
+// 判断版本名是否以00结尾（通常来说，release版本号需要以00结尾）
 def endsWith00() {
     return versionName().endsWith('00')
 }
