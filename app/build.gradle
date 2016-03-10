@@ -99,7 +99,9 @@ def userId() {
 
 // 判断是否还有变更没有提交
 def needCommit() {
-    return "git status --porcelain".execute().text.trim().size() > 0
+    def output = "git status --porcelain".execute().text.trim()
+    if (output.isEmpty()) return false
+    return !(output.size() == 1 && output.contains('appinfo.xml'))
 }
 
 // 判断版本名是否以00结尾（通常来说，release版本号需要以00结尾）
