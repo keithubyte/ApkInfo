@@ -99,8 +99,8 @@ def userId() {
 
 // 判断是否还有变更没有提交
 def needCommit() {
-    def output = "git status --porcelain".execute().text.trim()
-    println output.size()
+    def output = "git status --porcelain".execute().text.readLines()
+    println "commit lines ${output.size()}"
     if (output.isEmpty()) return false
     return !(output.size() == 1 && output.contains('appinfo.xml'))
 }
