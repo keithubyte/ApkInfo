@@ -5,7 +5,7 @@
   <channel_id>release</channel_id>
   <min_sdk>17</min_sdk>
   <git_branch>master</git_branch>
-  <git_commit_id>563b190b4b98259d7448bfbddb8b22ea3828b600</git_commit_id>
+  <git_commit_id>b82981105640e27f1a6849f824ea6b5acd9f173c</git_commit_id>
   <system_app>false</system_app>
   <dependencies>
     <dependency name="appcompat-v7">
