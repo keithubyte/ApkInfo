@@ -138,7 +138,7 @@ task createAppInfo << {
     def gitCommitId = gitCommitId()
     def isSystemApp = isSystemApp()
 
-    // 记录上述的基本信息
+    // 记录上述的基本信息，可自定义 project 的 name，这里默认用项目的名字
     def info = "<project name='${rootProject.name}'>\n" +
             "\t<package_name>${packageName}</package_name>\n" +
             "\t<version_name>${versionName}</version_name>\n" +
@@ -167,7 +167,7 @@ task createAppInfo << {
                         version_name d.version
                     }
                 }
-                file.write(XmlUtil.serialize(root))
+                file.write(XmlUtil.serialize(root), 'UTF-8')
             }
         }
     }

@@ -1,6 +1,11 @@
 package linkin.com.apkinfo;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.renderscript.Allocation;
+import android.renderscript.Element;
+import android.renderscript.RenderScript;
+import android.renderscript.ScriptIntrinsicBlur;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
@@ -58,5 +63,19 @@ public class ApkInfoActivity extends AppCompatActivity {
                 },
                 ZhiHuUpdateResp.class // 指定返回数据要转化的类型
         );
+    }
+
+    private Bitmap blur(Bitmap sentBitmap, float radius) {
+        Bitmap bitmap = sentBitmap.copy(sentBitmap.getConfig(), true);
+        final RenderScript rs = RenderScript.create(this);
+        final Allocation input = Allocation.createFromBitmap(rs, sentBitmap, Allocation.MipmapControl.MIPMAP_NONE,
+                Allocation.USAGE_SCRIPT);
+        final Allocation output = Allocation.createTyped(rs, input.getType());
+        final ScriptIntrinsicBlur script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs));
+        script.setRadius(radius /* e.g. 3.f */);
+        script.setInput(input);
+        script.forEach(output);
+        output.copyTo(bitmap);
+        return bitmap;
     }
 }
