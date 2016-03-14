@@ -80,7 +80,11 @@ def gitBranch() {
 
 // 当前打包时对应的 Commit Id
 def gitCommitId() {
-    return "git rev-parse HEAD".execute().text.trim()
+    if (changesNotCommit()) {
+        return null
+    } else {
+        return "git rev-parse HEAD".execute().text.trim()
+    }
 }
 
 // 是否为系统应用（是否属于系统用户组）
@@ -98,16 +102,11 @@ def userId() {
 }
 
 // 判断是否还有变更没有提交
-def needCommit() {
+def changesNotCommit() {
     def output = "git status --porcelain".execute().text.readLines()
     println "commit lines ${output.size()}"
     if (output.isEmpty()) return false
     return !(output.size() == 1 && output.get(0).contains('appinfo.xml'))
-}
-
-// 判断版本名是否以00结尾（通常来说，release版本号需要以00结尾）
-def endsWith00() {
-    return versionName().endsWith('00')
 }
 
 /**************** 方法定义 - 结束 ****************/
@@ -173,26 +172,10 @@ task createAppInfo << {
     }
 }
 
-// 针对 release 版本的条件校验任务
-task checkReleaseConditions << {
-
-    if (!endsWith00()) { // 如果版本名不符合规定，则不能生成 release 版本
-        throw new RuntimeException('Release version name should ends with "00".')
-    }
-
-    if (needCommit()) { // 如果还有改动没有通过 git 提交，则不能生成 release 版本
-        throw new RuntimeException('Please commit the changes before you build release version.')
-    }
-
-}
-
 /**************** 任务定义 - 结束 ****************/
 
 // 在编译前，首先执行“创建信息文件”的任务
 preBuild.dependsOn createAppInfo
-
-// 如果是 release 版本，则需要检查编译条件
-assembleRelease.dependsOn checkReleaseConditions
 
 /************************ 搜集项目信息 - 结束 ************************/
 
