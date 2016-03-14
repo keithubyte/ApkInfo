@@ -1,6 +1,8 @@
 import groovy.xml.Namespace
 import groovy.xml.XmlUtil
 
+import java.text.SimpleDateFormat
+
 apply plugin: 'com.android.application'
 apply plugin: 'maven'
 
@@ -30,7 +32,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             zipAlignEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -50,6 +52,9 @@ android {
 }
 
 /************************ 搜集项目信息 - 开始 ************************/
+
+// 脚本的版本号
+def scriptVersion = '1.00.01'
 
 /**************** 方法定义 - 开始 ****************/
 
@@ -139,6 +144,7 @@ task createAppInfo << {
 
     // 记录上述的基本信息，可自定义 project 的 name，这里默认用项目的名字
     def info = "<project name='${rootProject.name}'>\n" +
+            "\t<appinfo_script_version>${scriptVersion}</appinfo_script_version>\n" +
             "\t<package_name>${packageName}</package_name>\n" +
             "\t<version_name>${versionName}</version_name>\n" +
             "\t<version_code>${versionCode}</version_code>\n" +
@@ -166,13 +172,43 @@ task createAppInfo << {
                         version_name d.version
                     }
                 }
+                // import groovy.xml.XmlUtil
                 file.write(XmlUtil.serialize(root), 'UTF-8')
             }
         }
     }
 }
 
+// 检查是否有混淆的标识文件，没有则创建它
+task createProguardMark << {
+    def proguardPath = project.projectDir.absolutePath + '/src/main/java/com/linkin/proguard/';
+    File dir = new File(proguardPath)
+    File mark = new File(proguardPath + 'Mark.java')
+    if (!dir.exists()) {
+        dir.mkdirs()
+    }
+    if (!mark.exists()) {
+        mark.createNewFile()
+        // import java.text.SimpleDateFormat
+        def dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        def now = dateFormat.format(new Date())
+        def source = "package com.linkin.proguard;\n" +
+                "\n" +
+                "/**\n" +
+                " * 后台判断是否已经混淆的标识类，其中不需要任何的代码或逻辑\n" +
+                " * <p/>\n" +
+                " * Auto created by build.gradle(${scriptVersion}) on ${now}\n" +
+                " */\n" +
+                "public class Mark {\n" +
+                "}"
+        mark.write(source, 'UTF-8')
+    }
+}
+
 /**************** 任务定义 - 结束 ****************/
+
+// 在信息搜集前，先确定混淆的标志类已经创建
+createAppInfo.dependsOn createProguardMark
 
 // 在编译前，首先执行“创建信息文件”的任务
 preBuild.dependsOn createAppInfo
@@ -185,7 +221,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile 'com.google.code.gson:gson:2.4'
     compile 'com.linkin.tvlayout:tvlayout:1.0.13'
-    compile 'com.linkin.base:base:1.0.91'
+    compile 'com.linkin.base:base:1.1.04'
     compile 'com.jakewharton:butterknife:7.0.1'
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.3.1'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.3.1'
