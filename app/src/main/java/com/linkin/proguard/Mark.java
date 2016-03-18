@@ -6,4 +6,9 @@ package com.linkin.proguard;
  * Auto created by build.gradle(1.0.0) on 2016-03-14
  */
 public class Mark {
+
+    public static void main(String[] args) {
+        String[] words = "Hello_World".split("_");
+    }
+
 }
