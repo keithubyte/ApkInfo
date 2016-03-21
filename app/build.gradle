@@ -1,6 +1,5 @@
 import groovy.xml.Namespace
 import groovy.xml.XmlUtil
-
 import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 
@@ -59,7 +58,7 @@ android {
 /************************ 搜集项目信息 - 开始 ************************/
 
 // 脚本的版本号
-def scriptVersion = '1.00.02'
+def scriptVersion = '1.00.03'
 
 /**************** 方法定义 - 开始 ****************/
 
@@ -133,6 +132,27 @@ def channelId() {
     return flavor
 }
 
+// 获取项目对公司模块的依赖集合
+def linkinDeps() {
+    def result = "gradlew.bat app:dependencies --configuration compile".execute().text.toString()
+    def lines = result.readLines().findAll { it.contains("linkin") }.collect {
+        it.trim().split(' ')[1]
+    }
+
+    def map = new HashMap()
+    for (String line : lines) {
+        String[] array = line.split(':')
+        map.put(array[0], array[1] + ':' + array[2])
+    }
+
+    def dependencies = new ArrayList()
+    for (String key : map.keySet()) {
+        dependencies.add("${key}:${map.get(key)}")
+    }
+
+    return dependencies
+}
+
 /**************** 方法定义 - 结束 ****************/
 
 /**************** 任务定义 - 开始 ****************/
@@ -179,25 +199,19 @@ task createAppInfo << {
     def root = new XmlSlurper().parseText(info)
 
     // 获取依赖模块的信息
-    //noinspection GroovyAssignabilityCheck
-    configurations.findAll {
-        it.name.equals('compile') || it.name.equals('releaseCompile')
-    }.each {
-        it.dependencies.all { d ->
-            if (null != d.group && null != d.version) {
-                root.dependencies.appendNode {
-                    //noinspection GroovyAssignabilityCheck
-                    dependency(name: d.name) {
-                        package_name d.group
-                        version_name d.version
-                    }
-                }
-                // import groovy.xml.XmlUtil
-                file.write(XmlUtil.serialize(root), 'UTF-8')
+    linkinDeps().each {
+        //noinspection GroovyAssignabilityCheck
+        def d = it.split(':')
+        root.dependencies.appendNode {
+            //noinspection GroovyAssignabilityCheck
+            dependency(name: d[1]) {
+                package_name d[0]
+                version_name d[2]
             }
         }
+        // import groovy.xml.XmlUtil
+        file.write(XmlUtil.serialize(root), 'UTF-8')
     }
-
 }
 
 // 检查是否有混淆的标识文件，没有则创建它
@@ -239,7 +253,7 @@ preBuild.dependsOn createAppInfo
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.2.0'
+    compile 'com.android.support:appcompat-v7:23.2.1'
     compile 'com.google.code.gson:gson:2.4'
     compile 'com.linkin.tvlayout:tvlayout:1.0.13'
     compile 'com.jakewharton:butterknife:7.0.1'
