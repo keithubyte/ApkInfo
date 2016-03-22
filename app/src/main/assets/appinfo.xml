@@ -3,7 +3,7 @@
   <package_name>linkin.com.apkinfo</package_name>
   <version_name>1.06.00</version_name>
   <version_code>10600</version_code>
-  <channel_id>null</channel_id>
+  <channel_id>oversea</channel_id>
   <min_sdk>17</min_sdk>
   <git_branch>master</git_branch>
   <git_commit_id>null</git_commit_id>

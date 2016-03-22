@@ -58,7 +58,7 @@ android {
 /************************ 搜集项目信息 - 开始 ************************/
 
 // 脚本的版本号
-def scriptVersion = '1.00.03'
+def scriptVersion = '1.00.04'
 
 /**************** 方法定义 - 开始 ****************/
 
@@ -120,29 +120,37 @@ def changesNotCommit() {
 
 // 获取渠道号
 def channelId() {
-    def flavor = null
+    def matcher = releaseMatcher()
+    def channelId = matcher.find() ? matcher.group(1).toLowerCase() : null
+    return channelId.trim().length() == 0 ? null : channelId
+}
+
+// 判断是否为 release 版本
+def isRelease() {
+    return releaseMatcher().find()
+}
+
+// 获取当前的编译版本是否可能为 release 版本
+def releaseMatcher() {
     def source = gradle.startParameter.taskRequests.first().args.first().toString()
-    println "source is ${source}"
-    def pattern = Pattern.compile("assemble(.*?)(Release|Debug)");
+    def pattern = Pattern.compile("assemble(.*?)(Release)");
     def matcher = pattern.matcher(source);
-    if (matcher.find()) {
-        flavor = matcher.group(1).toLowerCase()
-        println "flavor is ${flavor}"
-    }
-    return flavor
+    return matcher
 }
 
 // 获取项目对公司模块的依赖集合
 def linkinDeps() {
     def result = "gradlew.bat app:dependencies --configuration compile".execute().text.toString()
-    def lines = result.readLines().findAll { it.contains("linkin") }.collect {
-        it.trim().split(' ')[1]
-    }
+    def lines = result.readLines()
+            .findAll { it.contains("com.linkin") }
+            .collect { it.substring(it.indexOf('com.linkin')).split(' ')[0]}
 
     def map = new HashMap()
     for (String line : lines) {
         String[] array = line.split(':')
-        map.put(array[0], array[1] + ':' + array[2])
+        if (array.size() == 3) {
+            map.put(array[0], array[1] + ':' + array[2])
+        }
     }
 
     def dependencies = new ArrayList()
@@ -159,6 +167,11 @@ def linkinDeps() {
 
 // 搜集项目信息的任务
 task createAppInfo << {
+
+    if (!isRelease()) {
+        println 'not release compile'
+        return
+    }
 
     // 创建记录项目基本信息的文件，以供后台系统读取
     def assets = project.projectDir.absolutePath + '/src/main/assets/'
