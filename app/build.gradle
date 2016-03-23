@@ -41,13 +41,13 @@ android {
     }
 
     productFlavors {
-/*        domestic {
+        domestic {
             manifestPlaceholders = [LINKIN_CHANNEL_VALUE: "domestic"]
         }
 
         oversea {
             manifestPlaceholders = [LINKIN_CHANNEL_VALUE: "oversea"]
-        }*/
+        }
     }
 
     lintOptions {
@@ -143,7 +143,7 @@ def releaseMatcher() {
 
 // 获取项目对公司模块的依赖集合
 def linkinDeps() {
-    def result = "gradlew.bat app:dependencies --configuration compile".execute().text.toString()
+    def result = "gradlew.bat --daemon app:dependencies --configuration compile".execute().text.toString()
     def lines = result.readLines()
             .findAll { it.contains("com.linkin") }
             .collect { it.substring(it.indexOf('com.linkin')).split(' ')[0]}
