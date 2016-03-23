@@ -7,13 +7,11 @@ import android.renderscript.Element;
 import android.renderscript.RenderScript;
 import android.renderscript.ScriptIntrinsicBlur;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 
 import com.android.volley.VolleyError;
 import com.linkin.base.nhttp.base.GetRequest;
 import com.linkin.base.nhttp.base.ReqType;
 import com.linkin.base.nhttp.inter.IHttpObserver;
-import com.linkin.base.nhttp.volley.VolleyHelper;
 import com.linkin.base.utils.Log;
 
 public class ApkInfoActivity extends AppCompatActivity {
@@ -24,15 +22,6 @@ public class ApkInfoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_apk_info);
-
-        VolleyHelper.init(this);
-
-        findViewById(R.id.hello).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                testThirdPartyGet();
-            }
-        });
     }
 
     public void testThirdPartyGet() {

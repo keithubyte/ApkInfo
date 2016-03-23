@@ -41,13 +41,13 @@ android {
     }
 
     productFlavors {
-        domestic {
+/*        domestic {
             manifestPlaceholders = [LINKIN_CHANNEL_VALUE: "domestic"]
         }
 
         oversea {
             manifestPlaceholders = [LINKIN_CHANNEL_VALUE: "oversea"]
-        }
+        }*/
     }
 
     lintOptions {
@@ -58,7 +58,7 @@ android {
 /************************ 搜集项目信息 - 开始 ************************/
 
 // 脚本的版本号
-def scriptVersion = '1.00.04'
+def scriptVersion = '1.00.05'
 
 /**************** 方法定义 - 开始 ****************/
 
@@ -122,7 +122,10 @@ def changesNotCommit() {
 def channelId() {
     def matcher = releaseMatcher()
     def channelId = matcher.find() ? matcher.group(1).toLowerCase() : null
-    return channelId.trim().length() == 0 ? null : channelId
+    if (channelId != null) {
+        return channelId.trim().length() == 0 ? null : channelId
+    }
+    return null
 }
 
 // 判断是否为 release 版本
@@ -168,8 +171,8 @@ def linkinDeps() {
 // 搜集项目信息的任务
 task createAppInfo << {
 
-    if (!isRelease()) {
-        println 'not release compile'
+    if (!isRelease() && !isSystemApp()) {
+        println 'not release compile or system app'
         return
     }
 
