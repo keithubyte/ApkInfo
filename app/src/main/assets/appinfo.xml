@@ -9,17 +9,17 @@
   <git_commit_id>null</git_commit_id>
   <system_app>false</system_app>
   <dependencies>
-    <dependency name="snprovider">
-      <package_name>com.linkin.snprovider</package_name>
-      <version_name>1.00.07</version_name>
+    <dependency name="tvlayout">
+      <package_name>com.linkin.tvlayout</package_name>
+      <version_name>1.0.15</version_name>
     </dependency>
     <dependency name="base">
       <package_name>com.linkin.base</package_name>
       <version_name>1.01.18</version_name>
     </dependency>
-    <dependency name="tvlayout">
-      <package_name>com.linkin.tvlayout</package_name>
-      <version_name>1.0.15</version_name>
+    <dependency name="snprovider">
+      <package_name>com.linkin.snprovider</package_name>
+      <version_name>1.00.07</version_name>
     </dependency>
   </dependencies>
 </project>

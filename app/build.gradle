@@ -11,7 +11,7 @@ def vc = vn.replace('.', '').toInteger()
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    buildToolsVersion "23.0.3"
 
     signingConfigs {
         release {
@@ -225,9 +225,9 @@ task createAppInfo << {
                 version_name d[2]
             }
         }
-        // import groovy.xml.XmlUtil
-        file.write(XmlUtil.serialize(root), 'UTF-8')
     }
+    // import groovy.xml.XmlUtil
+    file.write(XmlUtil.serialize(root), 'UTF-8')
 }
 
 // 检查是否有混淆的标识文件，没有则创建它
